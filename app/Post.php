@@ -4,10 +4,15 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Kyslik\ColumnSortable\Sortable;
 
 class Post extends Model
 {
+    use Sortable;
     protected  $fillable = ['title','description','status','post_type',
+        'categorie_id','nbr_students','date_end','date_start'];
+
+    public $sortable = ['title','description','status','post_type',
         'categorie_id','nbr_students','date_end','date_start'];
 
     public  function categorie(){
@@ -17,6 +22,7 @@ class Post extends Model
     public  function picture(){
         return $this->hasOne(Picture::class);
     }
+
 
     public function getDateStartFrAttribute()
     {

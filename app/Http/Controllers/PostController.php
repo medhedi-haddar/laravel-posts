@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Categorie;
+
 use Illuminate\Http\Request;
 use App\Post;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class PostController extends Controller
 {
@@ -16,8 +19,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::with('picture','categorie')->paginate(5);
-        return view('back.post.index',['posts'=>$posts]);
+        $posts = Post::with('picture','categorie')->sortable()->paginate(5);
+
+        return view('back.post.index',compact('posts'));
     }
 
     /**
@@ -52,17 +56,18 @@ class PostController extends Controller
 
         $post = Post::create($request->all());
 
-
         $im = $request->file('picture');
         if (!empty($im)){
-            $link = $request->file('picture')->store('images');
+            $link = $request->file('picture')->store('/images');
             $post->picture()->create([
                 'link' => $link,
                 'title' => $request->title
             ]);
         }
+        echo public_path();
+        dd($link);
 
-        return redirect()->route('post.index')->with('message', 'post ajpouté avec succée');
+//       return redirect()->route('post.index')->with('message', 'post ajpouté avec succée');
     }
 
     /**
@@ -73,7 +78,7 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = Post::find($id);
+        $post = Post::with('categorie','categorie')->find($id);
 
         return view('back.post.show', ['post' => $post]);
     }
@@ -127,6 +132,22 @@ class PostController extends Controller
         }
 
         return redirect()->route('post.index')->with('message', 'post ajpouté avec succée');
+    }
+
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function updateStatus(Request $request, $id){
+        $post = Post::find($request->post_id);
+            if($post->status === 'published'){
+                $post->update(['status' =>'unpublished']);
+            }
+            else{
+                $post->update(['status' => 'published']);
+            }
+         return redirect()->route('post.index')->with('message', 'status modifié avec succée');
+
     }
 
     /**
